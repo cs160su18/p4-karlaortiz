@@ -16,17 +16,6 @@
 </head>
 <body>
     <!-- You may change the dimensions of this canvas -->
-    <div class='row'>
-      <div class='col-4'>
-      <input type="text" id="message" value="test" onkeypress="testing(event)">
-      </div>
-      <div class='col-4'>
-        2nd col  
-      </div>
-      <div class='col-4'>
-        3rd col  
-      </div>
-    </div>
     <canvas id="myCanvas" width="750px" height="750px"></canvas>
 </body>
 <script>
@@ -43,36 +32,27 @@
   var socket = new WebSocket('ws://' + our_url + ':8765/');
   
   socket.onmessage = function(receiveMessage) {
-    console.log(receiveMessage.data);
+    var parsedPoint = JSON.parse(receiveMessage.data);
+    var newPoint = new paper.Point(parsedPoint.x, parsedPoint.y);
+    path.lineTo(newPoint);
   };
   
-  
+  // make path for this user
+  var path = new paper.Path();
+  path.strokeColor = 'red';
+ 
   socket.onopen = function() {
-    var msg = "Hello Server!";
-    //var msg = document.getElementById('message').value;
-    socket.send(msg);
-    //sentMsg();
-    
-    
-  };
-  function sentMsg() {
-      var message = {
-        text: document.getElementById("message").value,
-        //id: clientID,
-        //date: Date.now()
-      };
-      socket.send(JSON.stringify(message));
-      //document.getElementById("message").value = "";
-    };
-  
-  function testing(event) {
-    socket.send(event.key);
+    tool.onMouseMove = function(event) {
+      // send point to server 
+      var point = {'x': event.point.x, 'y': event.point.y};
+      socket.send(JSON.stringify(point));
+    }
   };
   
   socket.onclose = function(e) {
     console.error('Chat closed');
   };
-
+  
 
 
 </script>
