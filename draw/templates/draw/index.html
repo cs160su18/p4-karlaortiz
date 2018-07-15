@@ -26,7 +26,8 @@
   var tool = new paper.Tool();
   var userPaths = {};
   var colorArray = ['red', 'blue', 'greeen', 'orange','gray', 'violet', 'black', 'purple', 'aqua', 'pink'];
-  var colorsUsed = [];
+  //var colorsUsed = [];
+  var colorsUsed = {};
 
   // getting the URL (you may want to use for Exercise 3)
   var url = window.location.href;
@@ -38,28 +39,31 @@
     var parsedData = JSON.parse(receiveMessage.data);
     var msgType = parsedData.type;
     var id = parsedData.id;
+    var color = parsedData.color;
     if (msgType == "newPoint") {
       var newPoint = new paper.Point(parsedData.x, parsedData.y);
       if (id in userPaths === false) {
         userPaths[id] = new paper.Path();
-        var strokeColor = chooseColor();
-        userPaths[id].strokeColor = strokeColor;
+        userPaths[id].strokeColor = color;
+        colorsUsed[id] = color;
       }
       userPaths[id].lineTo(newPoint);
     } else if (msgType == "newUser") {
+      
       userPaths[id] = new paper.Path();
-      var strokeColor = chooseColor();
-      userPaths[id].strokeColor = strokeColor;
+      userPaths[id].strokeColor = color;
+      colorsUsed[id] = color;
     }
   };
  
   socket.onopen = function() {
     var id = createID();
-    var newUser = {"id": id, "type": "newUser"};
+    var color = chooseColor();
+    var newUser = {"id": id, "type": "newUser", "color": color};
     socket.send(JSON.stringify(newUser));
     tool.onMouseMove = function(event) {
       // send point to server 
-      var point = {'x': event.point.x, 'y': event.point.y, "type": "newPoint", "id": id};
+      var point = {'x': event.point.x, 'y': event.point.y, "type": "newPoint", "id": id, "color": color};
       socket.send(JSON.stringify(point));
     }
   };
@@ -76,13 +80,20 @@
   function chooseColor() {
     var index = Math.floor(Math.random() * 10);
     var color = colorArray[index];
-    while (color in colorsUsed) {  //ONLY VALID WHEN LESS THAN 10 USERS
+    var userColors = $.map(colorsUsed, function(value, key) {return value});
+    while (color in userColors) {  //ONLY VALID WHEN LESS THAN 10 USERS
       index = floor(Math.random() * 10);
       color = colorArray[index];
     }
-    colorsUsed.push(color);
     return color;
   }
+  
+  
+  
+//   $.getJSON( "data.json", function( data ) {
+//         var dataFromJSONFile=data["hello"];
+//         console.log(dataFromJSONFile);
+//   });
   
 
 
