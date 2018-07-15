@@ -25,14 +25,12 @@
   paper.setup(canvas);
   var tool = new paper.Tool();
   var userPaths = {};
-  var colorArray = ['red', 'blue', 'greeen', 'orange','gray', 'violet', 'black', 'purple', 'aqua', 'pink'];
+  var colorArray = ['red', 'blue', 'green', 'orange','gray', 'violet', 'black', 'purple', 'aqua', 'pink'];
   //var colorsUsed = [];
   var colorsUsed = {};
 
   // getting the URL (you may want to use for Exercise 3)
   var url = window.location.href;
-  //url.indexOf("small") > -1
-  //url.indexOf("large") > -1
   
   var our_url = 'p4-karlaortiz-karlaortiz770216.codeanyapp.com';
   var socket = new WebSocket('ws://' + our_url + ':8765/');
@@ -57,8 +55,7 @@
         colorsUsed[id] = color;
       } 
    }
-  };
-     
+  }; 
   socket.onopen = function() {
     var id = createID();
     var color = chooseColor();
@@ -68,7 +65,6 @@
       var mySmallPath = new paper.Path();  
     }
     tool.onMouseMove = function(event) {
-//       console.log("event.gamma: ", event.gamma);
       // send point to server 
       var point = {'x': event.point.x, 'y': event.point.y, "type": "newPoint", "id": id, "color": color};
       socket.send(JSON.stringify(point));
@@ -79,13 +75,22 @@
     }
     if (window.DeviceOrientationEvent) {
       window.addEventListener('deviceorientation', function(event) {
-        console.log(event.gamma);
+        //console.log(event.gamma);
         if (event.gamma > 45) {
-          //console.log(event.gamma);
           color = chooseColor();
           mySmallPath.strokeColor = color;
         }
       }, false);
+    }
+    
+    if (window.DeviceMotionEvent) {
+      window.addEventListener('devicemotion', function(event) {
+        if (event.acceleration.x > 15 || event.acceleration.y > 15 || event.acceleration.z > 15) {
+          paper.project.activeLayer.removeChildren();
+          mySmallPath = new paper.Path();
+          mySmallPath.strokeColor = color;
+        }
+      });
     }
   };
   
@@ -108,15 +113,6 @@
     }
     return color;
   }
-  
-  
-  
-//   $.getJSON( "data.json", function( data ) {
-//         var dataFromJSONFile=data["hello"];
-//         console.log(dataFromJSONFile);
-//   });
-  
-
-
+    
 </script>
 </html>
