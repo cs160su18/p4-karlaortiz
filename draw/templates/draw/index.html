@@ -31,40 +31,50 @@
 
   // getting the URL (you may want to use for Exercise 3)
   var url = window.location.href;
+  //url.indexOf("small") > -1
+  //url.indexOf("large") > -1
   
   var our_url = 'p4-karlaortiz-karlaortiz770216.codeanyapp.com';
   var socket = new WebSocket('ws://' + our_url + ':8765/');
   
   socket.onmessage = function(receiveMessage) {
-    var parsedData = JSON.parse(receiveMessage.data);
-    var msgType = parsedData.type;
-    var id = parsedData.id;
-    var color = parsedData.color;
-    if (msgType == "newPoint") {
-      var newPoint = new paper.Point(parsedData.x, parsedData.y);
-      if (id in userPaths === false) {
+    if (url.indexOf("large") > -1 ) {
+      var parsedData = JSON.parse(receiveMessage.data);
+      var msgType = parsedData.type;
+      var id = parsedData.id;
+      var color = parsedData.color;
+      if (msgType == "newPoint") {
+        var newPoint = new paper.Point(parsedData.x, parsedData.y);
+        if (id in userPaths === false) {
+          userPaths[id] = new paper.Path();
+          userPaths[id].strokeColor = color;
+          colorsUsed[id] = color;
+        }
+        userPaths[id].lineTo(newPoint);
+      } else if (msgType == "newUser") {
         userPaths[id] = new paper.Path();
         userPaths[id].strokeColor = color;
         colorsUsed[id] = color;
-      }
-      userPaths[id].lineTo(newPoint);
-    } else if (msgType == "newUser") {
-      
-      userPaths[id] = new paper.Path();
-      userPaths[id].strokeColor = color;
-      colorsUsed[id] = color;
-    }
+      } 
+   }
   };
- 
+     
   socket.onopen = function() {
     var id = createID();
     var color = chooseColor();
     var newUser = {"id": id, "type": "newUser", "color": color};
     socket.send(JSON.stringify(newUser));
+    if (url.indexOf("small") > -1) {
+      var mySmallPath = new paper.Path();  
+    }
     tool.onMouseMove = function(event) {
       // send point to server 
       var point = {'x': event.point.x, 'y': event.point.y, "type": "newPoint", "id": id, "color": color};
       socket.send(JSON.stringify(point));
+      if (url.indexOf("small") > -1 ) {
+        mySmallPath.strokeColor = color;
+        mySmallPath.lineTo(event.point);
+      }
     }
   };
   
