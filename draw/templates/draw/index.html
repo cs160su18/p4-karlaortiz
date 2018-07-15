@@ -24,6 +24,9 @@
   var canvas = document.getElementById('myCanvas');
   paper.setup(canvas);
   var tool = new paper.Tool();
+  var userPaths = {};
+  var colorArray = ['red', 'blue', 'greeen', 'orange','gray', 'violet', 'black', 'purple', 'aqua', 'pink'];
+  var colorsUsed = [];
 
   // getting the URL (you may want to use for Exercise 3)
   var url = window.location.href;
@@ -32,19 +35,31 @@
   var socket = new WebSocket('ws://' + our_url + ':8765/');
   
   socket.onmessage = function(receiveMessage) {
-    var parsedPoint = JSON.parse(receiveMessage.data);
-    var newPoint = new paper.Point(parsedPoint.x, parsedPoint.y);
-    path.lineTo(newPoint);
+    var parsedData = JSON.parse(receiveMessage.data);
+    var msgType = parsedData.type;
+    var id = parsedData.id;
+    if (msgType == "newPoint") {
+      var newPoint = new paper.Point(parsedData.x, parsedData.y);
+      if (id in userPaths === false) {
+        userPaths[id] = new paper.Path();
+        var strokeColor = chooseColor();
+        userPaths[id].strokeColor = strokeColor;
+      }
+      userPaths[id].lineTo(newPoint);
+    } else if (msgType == "newUser") {
+      userPaths[id] = new paper.Path();
+      var strokeColor = chooseColor();
+      userPaths[id].strokeColor = strokeColor;
+    }
   };
-  
-  // make path for this user
-  var path = new paper.Path();
-  path.strokeColor = 'red';
  
   socket.onopen = function() {
+    var id = createID();
+    var newUser = {"id": id, "type": "newUser"};
+    socket.send(JSON.stringify(newUser));
     tool.onMouseMove = function(event) {
       // send point to server 
-      var point = {'x': event.point.x, 'y': event.point.y};
+      var point = {'x': event.point.x, 'y': event.point.y, "type": "newPoint", "id": id};
       socket.send(JSON.stringify(point));
     }
   };
@@ -52,6 +67,22 @@
   socket.onclose = function(e) {
     console.error('Chat closed');
   };
+  
+  function createID() {
+    //Referenced https://gist.github.com/gordonbrander/2230317
+    return '_' + Math.random().toString(36).substr(2,9);
+  }
+  
+  function chooseColor() {
+    var index = Math.floor(Math.random() * 10);
+    var color = colorArray[index];
+    while (color in colorsUsed) {  //ONLY VALID WHEN LESS THAN 10 USERS
+      index = floor(Math.random() * 10);
+      color = colorArray[index];
+    }
+    colorsUsed.push(color);
+    return color;
+  }
   
 
 
