@@ -68,6 +68,7 @@
       var mySmallPath = new paper.Path();  
     }
     tool.onMouseMove = function(event) {
+//       console.log("event.gamma: ", event.gamma);
       // send point to server 
       var point = {'x': event.point.x, 'y': event.point.y, "type": "newPoint", "id": id, "color": color};
       socket.send(JSON.stringify(point));
@@ -75,6 +76,16 @@
         mySmallPath.strokeColor = color;
         mySmallPath.lineTo(event.point);
       }
+    }
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', function(event) {
+        console.log(event.gamma);
+        if (event.gamma > 45) {
+          //console.log(event.gamma);
+          color = chooseColor();
+          mySmallPath.strokeColor = color;
+        }
+      }, false);
     }
   };
   
