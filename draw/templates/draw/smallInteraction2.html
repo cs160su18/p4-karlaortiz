@@ -1,0 +1,88 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>P4 Small Display</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'draw/vendor/bootstrap/css/bootstrap.min.css' %}">
+    <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
+
+    <style type="text/css">
+    </style>
+
+</head>
+<body>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <h3>
+          Translated Sentence
+        </h3>
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <!-- Put data here --> 
+        <p id='translated-sentence'></p>
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <select id='order'>
+          <option value='1'>1</option>
+          <option value='2'>2</option>
+          <option value='3'>3</option>
+          <option value='4'>4</option>
+        </select>
+      </div>  
+    </div>
+    <div class='row'>
+     <div class='col-6' align='center'>
+      <button type="button">
+        <a href="/draw/smallInteraction1/">Back</a>
+      </button>
+     </div> 
+       <div class='col-6' align='center'>
+      <button type="button" onclick="sendSentence()">
+        Submit Sentence
+      </button>
+     </div> 
+    </div>
+</body>
+<script>
+  var userSentenceURL = window.location.search.split('sentence=')[1].split('+');
+  var userSentence = '';
+  for (var i = 0; i < userSentenceURL.length; i++) {
+    userSentence += userSentenceURL[i] + ' ';
+  }
+  document.getElementById('translated-sentence').innerHTML = userSentence;
+  
+
+  // getting the URL (you may want to use for Exercise 3)
+  var url = window.location.href;
+  var our_url = 'p4-karlaortiz-karlaortiz770216.codeanyapp.com';
+  var socket = new WebSocket('ws://' + our_url + ':8765/');
+  
+  socket.onmessage = function(receiveMessage) {
+      var parsedData = JSON.parse(receiveMessage.data);
+      var sentenceNumber = parsedData.order;
+      var sentence = parsedData.sentence;
+      console.log(parsedData);
+  }; 
+  
+  socket.onopen = function() { };
+      
+  socket.onclose = function(e) {
+    console.error('Chat closed');
+  };
+  
+  function sendSentence() {
+    var sentencePackage = {"sentence": userSentence, "order": document.getElementById("order").value};
+    socket.send(JSON.stringify(sentencePackage)); 
+    alert("Hey you just sent your sentence to the large display!");
+  }
+
+</script>
+</html>

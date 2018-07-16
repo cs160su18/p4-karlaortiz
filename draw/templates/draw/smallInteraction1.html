@@ -1,0 +1,76 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>P4 Small Display</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'draw/vendor/bootstrap/css/bootstrap.min.css' %}">
+    <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
+
+    <style type="text/css">
+    </style>
+
+</head>
+<body>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <h3>
+          Translate the following sentence.
+        </h3>
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <p id='studentSentence'>
+          
+        </p> 
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <form action="/draw/smallInteraction2/" method="GET" autocomplete='off' spellcheck='false'>
+          <input type='text' name='sentence'/>
+          <input type='submit' value='Done'/>
+        </form>
+      </div>  
+    </div>
+</body>
+<script>
+  // getting the URL (you may want to use for Exercise 3)
+  var url = window.location.href;
+  var our_url = 'p4-karlaortiz-karlaortiz770216.codeanyapp.com';
+  var socket = new WebSocket('ws://' + our_url + ':8765/');
+  var studentID = '';
+  //var sentence = '';
+  
+  socket.onmessage = function(receiveMessage) {
+    var parsedData = JSON.parse(receiveMessage.data);
+    var msgType = parsedData.type;
+    if (msgType == 'studentSentences') {
+      var sentence = parsedData[studentID];
+      document.getElementById('studentSentence').innerHTML = sentence;
+    }
+      // {'id1': sentence1, 'id2': sentence2,....}
+  }; 
+  
+  socket.onopen = function() { 
+    studentID = '_' + Math.random().toString(36).substr(2,9);
+    var msg = {'type': 'studentInfo', 'studentID': studentID}
+    socket.send(JSON.stringify(msg));
+  };
+      
+  socket.onclose = function(e) {
+    console.error('Chat closed');
+  };
+  
+  function sendSentence() {
+    var sentencePackage = {"sentence": userSentence, "order": document.getElementById("order").value};
+    socket.send(JSON.stringify(sentencePackage)); 
+    alert("Hey you just sent your sentence to the large display!");
+  }
+   
+</script>
+</html>

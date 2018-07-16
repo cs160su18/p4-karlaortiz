@@ -1,0 +1,73 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>P4 Teacher Display</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'draw/vendor/bootstrap/css/bootstrap.min.css' %}">
+    <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
+
+    <style type="text/css">
+    </style>
+
+</head>
+<body>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <h3>
+          Story Assignment: The Dog
+        </h3>
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <p>The dog plays in the park. He sees a squirrel. He chasses the squirrel up the tree. The owner chases his dog.</p>
+      </div>  
+    </div>
+   
+</body>
+<script>
+  // getting the URL (you may want to use for Exercise 3)
+  var url = window.location.href;
+  var our_url = 'p4-karlaortiz-karlaortiz770216.codeanyapp.com';
+  var socket = new WebSocket('ws://' + our_url + ':8765/');
+  var studentSentences = {};
+  var sentences = ["El perro juega en el parque.", "Él ve una ardilla.", "Él persigue la ardilla por el árbol.", "El dueño persigue a su perro."];
+  
+  socket.onmessage = function(receiveMessage) {
+    var parsedData = JSON.parse(receiveMessage.data);
+    var msgType = parsedData.type;
+    if (msgType == 'studentInfo') {
+      var studentID = parsedData.studentID;
+      var chosenSentence = randomSentenceGenerator();
+      studentSentences[studentID] = chosenSentence;
+    }
+    var numberOfStudents = Object.keys(studentSentences).length;
+    if (numberOfStudents == 4) {
+      studentSentences['type'] = 'studentSentences';
+      socket.send(JSON.stringify(studentSentences));
+    }
+  }; 
+  
+  socket.onopen = function() { };
+  
+  socket.onclose = function(e) {
+    console.error('Chat closed');
+  };
+  
+  function randomSentenceGenerator() {
+    var index = Math.floor(Math.random() * 10) % 4;
+    var sentence = sentences[index];
+    var userSentences = $.map(studentSentences, function(value, key) {return value});
+    while (userSentences.indexOf(sentence) > -1) {  //ONLY VALID WHEN LESS THAN 10 USERS
+      index = Math.floor(Math.random() * 10) % 4;
+      sentence = sentences[index];
+    }
+    return sentence;
+  }
+    
+</script>
+</html>

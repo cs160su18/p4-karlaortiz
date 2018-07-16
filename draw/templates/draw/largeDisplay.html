@@ -1,0 +1,66 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>P4 Large Display</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'draw/vendor/bootstrap/css/bootstrap.min.css' %}">
+    <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
+
+    <style type="text/css">
+    </style>
+
+</head>
+<body>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <h3>
+          Class Solutions!
+        </h3>
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <p id='1'></p>
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <p id='2'></p>
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <p id='3'></p>
+      </div>  
+    </div>
+    <div class='row'>
+      <div class='col-12' align='center'>
+        <p id='4'></p>
+      </div>  
+    </div>
+</body>
+<script>
+  // getting the URL (you may want to use for Exercise 3)
+  var url = window.location.href;
+  var our_url = 'p4-karlaortiz-karlaortiz770216.codeanyapp.com';
+  var socket = new WebSocket('ws://' + our_url + ':8765/');
+  
+  socket.onmessage = function(receiveMessage) {
+    var parsedData = JSON.parse(receiveMessage.data);
+    var sentence = parsedData.sentence;
+    var sentenceNumber = parsedData.order;
+    document.getElementById(sentenceNumber).innerHTML = sentenceNumber + '. ' + sentence; 
+  }; 
+  
+  socket.onopen = function() { };
+  
+  socket.onclose = function(e) {
+    console.error('Chat closed');
+  };
+    
+</script>
+</html>
